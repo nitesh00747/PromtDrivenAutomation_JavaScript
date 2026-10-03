@@ -116,6 +116,12 @@ plan instead of starting a new one; if not, a fresh plan is the right call.
 | `.claude/agents/` | The three agents' official, unmodified definitions |
 | `playwright.config.js` | Base URL, browser settings, reporter |
 
+## Scaling past a handful of tests
+
+The patterns above hold at small scale. Running the Generator on multiple new scenarios at once,
+and deciding what's safe to merge, need real guardrails once this grows — see
+[CONTRIBUTING.md](CONTRIBUTING.md) for the concurrency policy and merge checklist.
+
 ## Status
 
 All three agents are installed and working. Login, inventory, cart, checkout, sorting, product
