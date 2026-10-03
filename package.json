@@ -12,7 +12,7 @@
     "guardrails": "node scripts/check-test-guardrails.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Nitesh Guleria",
   "license": "ISC",
   "devDependencies": {
     "@playwright/test": "^1.63.0",
