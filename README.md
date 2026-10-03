@@ -61,6 +61,93 @@ npx playwright install chromium
    `test.fixme()` with an explanatory comment instead of guessing if it can't resolve something
    confidently.
 
+## Test coverage
+
+Two plans, generated so far, cover the whole positive-path shopping journey plus the login
+negative cases:
+
+```mermaid
+flowchart LR
+    LOGIN["Login page<br/>(/)"] -->|"5 accepted users"| INV["Inventory page<br/>(6 items)"]
+    LOGIN -.->|"locked_out_user, or<br/>wrong password"| DENY["Denied<br/>(error banner)"]
+
+    INV --> SORT["Sort dropdown<br/>Name A-Z/Z-A · Price lo-hi/hi-lo"]
+    INV --> DETAIL["Product detail page"]
+    INV -->|"Add to cart"| CART["Cart page<br/>(/cart.html)"]
+    DETAIL -->|"Add to cart"| CART
+
+    CART -->|"Checkout"| STEP1["Checkout: Your Information"]
+    STEP1 --> STEP2["Checkout: Overview<br/>(subtotal / tax / total)"]
+    STEP2 -->|"Finish"| DONE["Checkout: Complete!"]
+    DONE -->|"Back Home"| INV
+
+    INV -->|"burger menu"| LOGOUT["Logout"] --> LOGIN
+    INV -->|"burger menu"| RESET["Reset App State"] --> INV
+
+    style LOGIN fill:#4c6ef5,color:#fff
+    style DENY fill:#e8590c,color:#fff
+    style DONE fill:#2f9e44,color:#fff
+```
+
+| Plan | Spec files | Scenarios |
+|---|---|---|
+| `specs/login-and-inventory.plan.md` | `login-accepted-users.spec.ts` | 5 — one per accepted username (`standard_user`, `problem_user`, `performance_glitch_user`, `error_user`, `visual_user`) |
+| | `login-negative.spec.ts` | 2 — `locked_out_user` denied despite the correct password; valid username + wrong password denied |
+| | `inventory-items.spec.ts` | 1 — exactly 6 items, each with name/price/own Add to cart button |
+| `specs/shopping-flow.plan.md` | `cart-inventory-add-remove.spec.ts` | 3 — add/remove from the inventory page, badge count tracks correctly |
+| | `cart-page.spec.ts` | 2 — cart page lists the right items; removing from the cart page itself works |
+| | `checkout-flow.spec.ts` | 2 — full 3-step checkout, single item and multi-item price totals |
+| | `product-sort.spec.ts` | 4 — all four sort modes, including price tie-breaking |
+| | `product-detail.spec.ts` | 2 — navigating in via name/image, adding to cart from the detail page |
+| | `logout.spec.ts` | 1 — logout clears the session (direct nav back to `/inventory.html` redirects to `/`) |
+| | `reset-app-state.spec.ts` | 1 — clears the cart; inventory buttons need a reload to visually revert (a confirmed quirk) |
+
+24 tests total (23 generated + the seed), all green on `npm test`.
+
+### Visual example: a generated test
+
+This is `tests/cart/cart-inventory-add-remove.spec.ts`'s first test, as written by the Generator
+agent — note it re-performs the seed's login inline (every spec file is standalone; Playwright
+doesn't share browser state across files just because a comment points at a seed):
+
+```ts
+test('Adding a single item updates the cart badge and button', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('[data-test="username"]').fill('standard_user');
+  await page.locator('[data-test="password"]').fill('secret_sauce');
+  await page.locator('[data-test="login-button"]').click();
+
+  const cartLink = page.locator('[data-test="shopping-cart-link"]');
+  const cartBadge = page.locator('[data-test="shopping-cart-badge"]');
+
+  // The badge element doesn't exist in the DOM at all when the cart is empty
+  await expect(cartLink).toHaveAccessibleName('Cart, empty');
+  await expect(cartBadge).toHaveCount(0);
+
+  await page.locator('[data-test="add-to-cart-sauce-labs-backpack"]').click();
+
+  await expect(page.locator('[data-test="remove-sauce-labs-backpack"]')).toHaveText('Remove');
+  await expect(cartBadge).toHaveText('1');
+  await expect(cartLink).toHaveAccessibleName('Cart, 1 items');
+});
+```
+
+And from `tests/inventory/inventory-items.spec.ts`, a locator trap known from the sibling C# repo:
+all 6 "Add to cart" buttons share the same accessible name, so an unscoped
+`page.getByRole('button', { name: 'Add to cart' })` throws a strict-mode violation. The Planner
+flagged this ahead of time, so the Generator scoped the locator per item container instead:
+
+```ts
+const items = page.locator('.inventory_item');
+await expect(items).toHaveCount(6);
+
+for (let i = 0; i < await items.count(); i++) {
+  const item = items.nth(i);
+  const addToCartButton = item.getByRole('button', { name: 'Add to cart' }); // scoped, not page.getByRole(...)
+  await expect(addToCartButton).toHaveCount(1);
+}
+```
+
 ## Structure
 | Path | Purpose |
 |---|---|
@@ -85,5 +172,6 @@ npx playwright install chromium
 - Generated tests are TypeScript, by Playwright's own convention (see above) - the C# repo has no
   equivalent language mismatch since everything there is C#.
 
-This is a day-1 scaffold: the three agents are installed and the seed test (login as
-`standard_user`) is verified working. No scenario coverage has been generated yet.
+The three agents are installed, the seed test (login as `standard_user`) is verified working, and
+the Planner/Generator have since produced full coverage of login, inventory, cart, checkout,
+sorting, product detail, logout, and reset-app-state — see [Test coverage](#test-coverage) above.
