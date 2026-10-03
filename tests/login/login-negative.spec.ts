@@ -1,4 +1,4 @@
-// spec: specs/plan.md
+// spec: specs/login-and-inventory.plan.md
 // seed: tests/seed.spec.ts
 
 import { test, expect } from '@playwright/test';

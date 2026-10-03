@@ -1,0 +1,206 @@
+{
+  "totals": {
+    "files": 11,
+    "tests": 24,
+    "plans": 3
+  },
+  "byPlan": {
+    "specs/shopping-flow.plan.md": [
+      "tests/cart/cart-inventory-add-remove.spec.ts",
+      "tests/cart/cart-page.spec.ts",
+      "tests/checkout/checkout-flow.spec.ts",
+      "tests/menu/logout.spec.ts",
+      "tests/menu/reset-app-state.spec.ts",
+      "tests/product-detail/product-detail.spec.ts",
+      "tests/sorting/product-sort.spec.ts"
+    ],
+    "specs/login-and-inventory.plan.md": [
+      "tests/inventory/inventory-items.spec.ts",
+      "tests/login/login-accepted-users.spec.ts",
+      "tests/login/login-negative.spec.ts"
+    ],
+    "(no spec header)": [
+      "tests/seed.spec.ts"
+    ]
+  },
+  "files": [
+    {
+      "file": "tests/cart/cart-inventory-add-remove.spec.ts",
+      "specPlan": "specs/shopping-flow.plan.md",
+      "seed": "tests/seed.spec.ts",
+      "suites": [
+        {
+          "suite": "Cart - Inventory Page Interactions",
+          "tests": [
+            "Adding a single item updates the cart badge and button",
+            "Adding multiple items increments the badge correctly",
+            "Removing an item via its inventory page Remove button decrements the badge and reverts the button"
+          ],
+          "count": 3
+        }
+      ],
+      "count": 3
+    },
+    {
+      "file": "tests/cart/cart-page.spec.ts",
+      "specPlan": "specs/shopping-flow.plan.md",
+      "seed": "tests/seed.spec.ts",
+      "suites": [
+        {
+          "suite": "Cart Page",
+          "tests": [
+            "Cart page shows exactly the items added, each with correct name, price and quantity",
+            "Removing an item from the cart page itself updates the page and the badge"
+          ],
+          "count": 2
+        }
+      ],
+      "count": 2
+    },
+    {
+      "file": "tests/checkout/checkout-flow.spec.ts",
+      "specPlan": "specs/shopping-flow.plan.md",
+      "seed": "tests/seed.spec.ts",
+      "suites": [
+        {
+          "suite": "Checkout Flow (End to End)",
+          "tests": [
+            "Complete the checkout happy path with a single item",
+            "Complete the checkout happy path with multiple items and verify correct price totals"
+          ],
+          "count": 2
+        }
+      ],
+      "count": 2
+    },
+    {
+      "file": "tests/inventory/inventory-items.spec.ts",
+      "specPlan": "specs/login-and-inventory.plan.md",
+      "seed": "tests/seed.spec.ts",
+      "suites": [
+        {
+          "suite": "Inventory Page",
+          "tests": [
+            "Inventory page lists exactly 6 items, each with name, price, and its own Add to cart button"
+          ],
+          "count": 1
+        }
+      ],
+      "count": 1
+    },
+    {
+      "file": "tests/login/login-accepted-users.spec.ts",
+      "specPlan": "specs/login-and-inventory.plan.md",
+      "seed": "tests/seed.spec.ts",
+      "suites": [
+        {
+          "suite": "Login - Accepted Users",
+          "tests": [
+            "standard_user logs in successfully",
+            "problem_user logs in successfully",
+            "performance_glitch_user logs in successfully",
+            "error_user logs in successfully",
+            "visual_user logs in successfully"
+          ],
+          "count": 5
+        }
+      ],
+      "count": 5
+    },
+    {
+      "file": "tests/login/login-negative.spec.ts",
+      "specPlan": "specs/login-and-inventory.plan.md",
+      "seed": "tests/seed.spec.ts",
+      "suites": [
+        {
+          "suite": "Login - Negative Scenarios",
+          "tests": [
+            "locked_out_user is denied login with correct password",
+            "valid username with wrong password is denied login"
+          ],
+          "count": 2
+        }
+      ],
+      "count": 2
+    },
+    {
+      "file": "tests/menu/logout.spec.ts",
+      "specPlan": "specs/shopping-flow.plan.md",
+      "seed": "tests/seed.spec.ts",
+      "suites": [
+        {
+          "suite": "Logout",
+          "tests": [
+            "Logging out via the burger menu returns to the login page and clears the session"
+          ],
+          "count": 1
+        }
+      ],
+      "count": 1
+    },
+    {
+      "file": "tests/menu/reset-app-state.spec.ts",
+      "specPlan": "specs/shopping-flow.plan.md",
+      "seed": "tests/seed.spec.ts",
+      "suites": [
+        {
+          "suite": "Reset App State",
+          "tests": [
+            "Reset App State clears the cart after items have been added"
+          ],
+          "count": 1
+        }
+      ],
+      "count": 1
+    },
+    {
+      "file": "tests/product-detail/product-detail.spec.ts",
+      "specPlan": "specs/shopping-flow.plan.md",
+      "seed": "tests/seed.spec.ts",
+      "suites": [
+        {
+          "suite": "Product Detail Page",
+          "tests": [
+            "Clicking a product's name navigates to its detail page with matching content, and Back to products returns to inventory",
+            "Clicking a product's image navigates to its detail page, and Add to cart works from that page"
+          ],
+          "count": 2
+        }
+      ],
+      "count": 2
+    },
+    {
+      "file": "tests/seed.spec.ts",
+      "specPlan": null,
+      "seed": null,
+      "suites": [
+        {
+          "suite": "Seed",
+          "tests": [
+            "Logged in as standard_user"
+          ],
+          "count": 1
+        }
+      ],
+      "count": 1
+    },
+    {
+      "file": "tests/sorting/product-sort.spec.ts",
+      "specPlan": "specs/shopping-flow.plan.md",
+      "seed": "tests/seed.spec.ts",
+      "suites": [
+        {
+          "suite": "Product Sorting",
+          "tests": [
+            "Default sort is Name (A to Z) and can be re-selected explicitly",
+            "Sorting by Name (Z to A) reverses the alphabetical order",
+            "Sorting by Price (low to high) orders items ascending by price",
+            "Sorting by Price (high to low) orders items descending by price"
+          ],
+          "count": 4
+        }
+      ],
+      "count": 4
+    }
+  ]
+}

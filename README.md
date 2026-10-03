@@ -49,17 +49,64 @@ npx playwright install chromium
 ```
 
 ## Daily workflow
-1. **Plan a flow**: `Use the playwright-test-planner agent to plan <flow description>`. It
+1. **Before planning new functionality, check `specs/manifest.json`** (see
+   [Finding where new tests belong](#finding-where-new-tests-belong) below) to see whether an
+   existing plan already covers the feature area, so new scenarios extend it instead of
+   duplicating it under a new plan.
+2. **Plan a flow**: `Use the playwright-test-planner agent to plan <flow description>`. It
    explores the live app and saves a test plan to `specs/<name>.md`.
-2. **Generate tests from the plan**: `Use the playwright-test-generator agent to generate tests
+3. **Generate tests from the plan**: `Use the playwright-test-generator agent to generate tests
    for <scenario> from specs/<name>.md`. It re-executes every step live to verify it, then writes
    one `tests/<name>.spec.ts` per scenario.
-3. **Run**: `npm test` (or `npm run test:ui` for interactive mode, `npm run test:report` to open
-   the last HTML report).
-4. **If something fails later** (app changed): `Use the playwright-test-healer agent to fix the
+4. **Run**: `npm test` (or `npm run test:ui` for interactive mode, `npm run test:report` to open
+   the last HTML report). `npm test` always regenerates `specs/manifest.json` first via its
+   `pretest` hook, so it's never stale.
+5. **If something fails later** (app changed): `Use the playwright-test-healer agent to fix the
    failing tests`. It runs the suite, debugs each failure live, fixes code, and marks
    `test.fixme()` with an explanatory comment instead of guessing if it can't resolve something
    confidently.
+
+## Finding where new tests belong
+
+With two plans and 24 tests this is easy to hold in your head. It won't be at 100+ tests, so
+`specs/manifest.json` exists to answer "does something already cover this?" without relying on
+memory of past sessions.
+
+**It's generated, not hand-maintained** — `scripts/generate-test-index.js` runs
+`playwright test --list --reporter=json` to enumerate every file/suite/test, then reads each
+file's `// spec:` / `// seed:` header comment to link it back to the plan that produced it. It
+can't drift from reality because it's derived from the actual test files every time it runs
+(`npm run test:index`, or automatically via `pretest` before every `npm test`).
+
+```json
+{
+  "totals": { "files": 11, "tests": 24, "plans": 3 },
+  "byPlan": {
+    "specs/shopping-flow.plan.md": ["tests/cart/cart-page.spec.ts", "..."],
+    "specs/login-and-inventory.plan.md": ["tests/login/login-accepted-users.spec.ts", "..."]
+  },
+  "files": [
+    {
+      "file": "tests/cart/cart-page.spec.ts",
+      "specPlan": "specs/shopping-flow.plan.md",
+      "suites": [{ "suite": "Cart Page", "tests": ["..."], "count": 2 }]
+    }
+  ]
+}
+```
+
+**The decision this drives**, before invoking the Planner for new functionality:
+- Grep `byPlan` / `files[].file` for the feature area or URL the new functionality touches.
+- **Match found** → tell the Planner it's extending `specs/<that-plan>.md`, point the Generator
+  at the existing `file` for that suite, and have it add new scenarios rather than duplicate
+  existing ones.
+- **No match** → it's a new feature area; a new plan file is fine.
+
+This only works if every generated test actually carries an accurate `// spec:` header — the
+stock Generator agent's own example prompt uses the literal placeholder `specs/plan.md`, and
+several early tests in this repo were generated with that placeholder left unfilled. Those were
+corrected by hand; going forward, generator invocations should explicitly state the real plan
+path to use in the header rather than relying on the agent to infer it.
 
 ## Test coverage
 
@@ -152,6 +199,8 @@ for (let i = 0; i < await items.count(); i++) {
 | Path | Purpose |
 |---|---|
 | `specs/` | Test plans, written by the Planner agent as plain markdown |
+| `specs/manifest.json` (generated) | Index of every test file/suite/test and which plan produced it — see [Finding where new tests belong](#finding-where-new-tests-belong) |
+| `scripts/generate-test-index.js` | Regenerates `specs/manifest.json` from `playwright test --list`; run via `npm run test:index` or automatically before `npm test` |
 | `tests/seed.spec.ts` | Shared starting state (logs in as `standard_user`) the Planner/Generator use as their environment seed |
 | `tests/*.spec.ts` | Generated tests, one scenario per file, written by the Generator agent |
 | `.claude/agents/playwright-test-*.md` | Microsoft's official agent definitions, installed via `init-agents`, unmodified |
@@ -159,18 +208,7 @@ for (let i = 0; i < await items.count(); i++) {
 | `playwright.config.js` | Base URL, browser projects, reporter |
 | `playwright-report/` (git-ignored) | HTML report from the last run |
 
-## How this differs from the C# solution
-- Uses Playwright's **official** agents (Microsoft-authored), not custom Claude Code subagents -
-  the C# repo had to build its own planner/generator/healer because that official tooling doesn't
-  exist for .NET/NUnit.
-- Those official agents use a dedicated `playwright-test` MCP server with purpose-built tools,
-  rather than driving the general-purpose `@playwright/mcp` browser server directly.
-- No custom spec schema, linter, or staleness-check yet - `specs/*.md` is just whatever shape the
-  Planner produces, not a hand-designed multi-scenario frontmatter format like the C# repo's.
-  `generation-manifest.json`-style spec-to-code tracking doesn't exist here either - add it later
-  if drift-detection turns out to matter as much here as it did on the C# side.
-- Generated tests are TypeScript, by Playwright's own convention (see above) - the C# repo has no
-  equivalent language mismatch since everything there is C#.
+## Status
 
 The three agents are installed, the seed test (login as `standard_user`) is verified working, and
 the Planner/Generator have since produced full coverage of login, inventory, cart, checkout,

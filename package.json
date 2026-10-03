@@ -4,9 +4,11 @@
   "description": "Prompt-driven test automation (JavaScript) using Playwright's official Planner/Generator/Healer agents",
   "main": "index.js",
   "scripts": {
+    "pretest": "node scripts/generate-test-index.js",
     "test": "playwright test",
     "test:ui": "playwright test --ui",
-    "test:report": "playwright show-report"
+    "test:report": "playwright show-report",
+    "test:index": "node scripts/generate-test-index.js"
   },
   "keywords": [],
   "author": "",
