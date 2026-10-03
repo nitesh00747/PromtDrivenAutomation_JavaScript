@@ -1,5 +1,10 @@
 # PromtDrivenAutomation_JavaScript
 
+[![Tests](https://github.com/nitesh00747/PromtDrivenAutomation_JavaScript/actions/workflows/playwright.yml/badge.svg)](https://github.com/nitesh00747/PromtDrivenAutomation_JavaScript/actions/workflows/playwright.yml)
+[![Playwright](https://img.shields.io/badge/Playwright-1.63-2EAD33?logo=playwright&logoColor=white)](https://playwright.dev)
+[![TypeScript](https://img.shields.io/badge/tests-TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-lts-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+
 Prompt-driven test automation, JS/TS sibling to the C#/NUnit `PromtDrivenAutomation` repo — but
 built around Playwright's **official** Planner/Generator/Healer agents
 (`npx playwright init-agents --loop claude`) instead of hand-written Claude Code subagents. That
