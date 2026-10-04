@@ -8,8 +8,9 @@
 This is a reusable pattern for testing *any* web application: instead of writing Playwright tests
 by hand, you describe a flow in plain English, and three AI agents plan it, write it, and fix it
 automatically if it ever breaks. Nothing about the agents themselves is specific to one app — this
-repo just demonstrates the pattern against [SauceDemo](https://www.saucedemo.com/) as a working
-example. Point it at your own application and the same workflow applies.
+repo currently targets [Assurant Renters Insurance](https://assurantrenters.com/) (Florida), one
+of several apps this same setup has been pointed at. Point it at your own application and the same
+workflow applies — see [Using this on your own application](#using-this-on-your-own-application).
 
 (This is the JS/TS sibling to the C#/NUnit `PromtDrivenAutomation` repo, built on Playwright's own
 official agents rather than custom-written ones.)
@@ -51,16 +52,17 @@ below.
 
 ## Using this on your own application
 
-The whole point of using Playwright's official agents is that none of the above is tied to
-SauceDemo. To point this at a different app:
+The whole point of using Playwright's official agents is that none of the above is tied to one
+app. To point this at a different one:
 
 1. Change `baseURL` in `playwright.config.js` to your app's URL.
-2. Replace `tests/seed.spec.ts` with whatever "starting state" makes sense for your app (often
-   just logging in).
-3. Follow the same four steps above — plan, generate, run, heal — describing *your* app's flows
-   instead of SauceDemo's.
+2. Replace `tests/seed.spec.ts` with whatever "starting state" makes sense for your app (a login,
+   or — as with the renters-insurance flow here — just reaching the first real step of the flow).
+3. Follow the same four steps above — plan, generate, run, heal — describing *your* app's flows.
 
-Everything else (the agents, the manifest script, the workflow) carries over unchanged.
+Everything else (the agents, the manifest script, the workflow) carries over unchanged. This repo
+has already been pointed at more than one app this way — see git history if you want to see what
+the SauceDemo e-commerce version of this same setup looked like.
 
 ## What's covered today
 
@@ -112,7 +114,7 @@ plan instead of starting a new one; if not, a fresh plan is the right call.
 | `specs/` | Test plans, written by the Planner as plain markdown |
 | `specs/manifest.json` | Auto-generated index of all tests — see above |
 | `tests/` | Generated tests, written by the Generator, one file per scenario |
-| `tests/seed.spec.ts` | The starting point (logs in) that other scenarios build on |
+| `tests/seed.spec.ts` | The starting point (enters an FL address and starts a quote) that other scenarios build on |
 | `.claude/agents/` | The three agents' official, unmodified definitions |
 | `playwright.config.js` | Base URL, browser settings, reporter |
 
