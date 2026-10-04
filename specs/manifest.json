@@ -1,8 +1,8 @@
 {
   "totals": {
-    "files": 11,
-    "tests": 24,
-    "plans": 3
+    "files": 15,
+    "tests": 38,
+    "plans": 5
   },
   "byPlan": {
     "specs/shopping-flow.plan.md": [
@@ -18,6 +18,14 @@
       "tests/inventory/inventory-items.spec.ts",
       "tests/login/login-accepted-users.spec.ts",
       "tests/login/login-negative.spec.ts"
+    ],
+    "(none — this documents a confirmed live application bug, not a planned scenario)": [
+      "tests/known-issues/problem-user-broken-images.spec.ts"
+    ],
+    "specs/negative-edge-cases.plan.md": [
+      "tests/negative-edge-cases/checkout-cancel-flows.spec.ts",
+      "tests/negative-edge-cases/checkout-step-one-validation.spec.ts",
+      "tests/negative-edge-cases/route-guard-redirects.spec.ts"
     ],
     "(no spec header)": [
       "tests/seed.spec.ts"
@@ -89,6 +97,21 @@
       "count": 1
     },
     {
+      "file": "tests/known-issues/problem-user-broken-images.spec.ts",
+      "specPlan": "(none — this documents a confirmed live application bug, not a planned scenario)",
+      "seed": "tests/seed.spec.ts",
+      "suites": [
+        {
+          "suite": "Known Issues",
+          "tests": [
+            "problem_user sees distinct product images (currently fails — real app bug, not a test bug)"
+          ],
+          "count": 1
+        }
+      ],
+      "count": 1
+    },
+    {
       "file": "tests/login/login-accepted-users.spec.ts",
       "specPlan": "specs/login-and-inventory.plan.md",
       "seed": "tests/seed.spec.ts",
@@ -152,6 +175,61 @@
         }
       ],
       "count": 1
+    },
+    {
+      "file": "tests/negative-edge-cases/checkout-cancel-flows.spec.ts",
+      "specPlan": "specs/negative-edge-cases.plan.md",
+      "seed": "tests/seed.spec.ts",
+      "suites": [
+        {
+          "suite": "Checkout Cancel Flows",
+          "tests": [
+            "Cancel on checkout step one returns to the cart page with cart contents preserved",
+            "Cancel on checkout overview (step two) returns to the inventory page with cart contents preserved"
+          ],
+          "count": 2
+        }
+      ],
+      "count": 2
+    },
+    {
+      "file": "tests/negative-edge-cases/checkout-step-one-validation.spec.ts",
+      "specPlan": "specs/negative-edge-cases.plan.md",
+      "seed": "tests/seed.spec.ts",
+      "suites": [
+        {
+          "suite": "Checkout Step One Validation Errors",
+          "tests": [
+            "Continue with empty First Name shows required error and does not proceed",
+            "Continue with First Name filled but empty Last Name shows required error and does not proceed",
+            "Continue with First and Last Name filled but empty Zip/Postal Code shows required error and does not proceed",
+            "Filling all three required fields allows successful progression to step two"
+          ],
+          "count": 4
+        }
+      ],
+      "count": 4
+    },
+    {
+      "file": "tests/negative-edge-cases/route-guard-redirects.spec.ts",
+      "specPlan": "specs/negative-edge-cases.plan.md",
+      "seed": "tests/seed.spec.ts",
+      "suites": [
+        {
+          "suite": "Protected Pages Require Active Login Session",
+          "tests": [
+            "Direct navigation to /inventory.html without a session redirects to login with page-specific error",
+            "Direct navigation to /cart.html without a session redirects to login with page-specific error",
+            "Direct navigation to /checkout-step-one.html without a session redirects to login with page-specific error",
+            "Direct navigation to /checkout-step-two.html without a session redirects to login with page-specific error",
+            "Direct navigation to /checkout-complete.html without a session redirects to login with page-specific error",
+            "Direct navigation to /inventory-item.html?id=4 without a session redirects to login with path-only error (query string dropped)",
+            "After logging out mid-session, previously accessible protected pages become inaccessible again"
+          ],
+          "count": 7
+        }
+      ],
+      "count": 7
     },
     {
       "file": "tests/product-detail/product-detail.spec.ts",
