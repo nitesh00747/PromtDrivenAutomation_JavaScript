@@ -9,6 +9,9 @@ test.describe('Known Issues', () => {
   // images per product. This is a genuine, intentional SauceDemo bug seeded into
   // this user (real app bug), not a selector or assertion problem in this test.
   // Marked fixme so the suite stays green while this known app bug remains unfixed.
+  // acknowledged-fixme: intentional, permanent SauceDemo quirk seeded into problem_user for
+  // QA-practice purposes - there is no upstream issue to track or fix; this test exists purely
+  // to document the behavior, not to flag a regression that needs resolving.
   test.fixme('problem_user sees distinct product images (currently fails — real app bug, not a test bug)', async ({ page }) => {
     // Log in as problem_user
     await page.goto('/');
