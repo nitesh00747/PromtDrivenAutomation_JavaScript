@@ -1,0 +1,29 @@
+{
+  "totals": {
+    "files": 1,
+    "tests": 1,
+    "plans": 1
+  },
+  "byPlan": {
+    "(no spec header)": [
+      "tests/seed.spec.ts"
+    ]
+  },
+  "files": [
+    {
+      "file": "tests/seed.spec.ts",
+      "specPlan": null,
+      "seed": null,
+      "suites": [
+        {
+          "suite": "Seed",
+          "tests": [
+            "Started a Florida renters insurance quote"
+          ],
+          "count": 1
+        }
+      ],
+      "count": 1
+    }
+  ]
+}
