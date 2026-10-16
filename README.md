@@ -20,11 +20,15 @@ through plan → test → self-healing suite:
 ```mermaid
 flowchart TD
     ENG(["🧑‍💻 Automation Engineer"])
-    ENG -->|"1 . describes a flow in plain English"| PLAN
+    ENG -->|"1 . describes a flow in plain English"| CHECK
+
+    CHECK{{"Check specs/manifest.json —\nis this area already covered?"}}
+    CHECK -->|"not covered"| PLAN
+    CHECK -->|"already covered"| EXTEND["Extend the existing plan\ninstead of starting a new one"] --> PLAN
 
     subgraph PLAN["Planner agent"]
         P1["Explores the live app"]
-        P2["Writes a plain-English\ntest plan → specs/*.plan.md"]
+        P2["Writes/updates a plain-English\ntest plan → specs/*.plan.md"]
         P1 --> P2
     end
 
@@ -54,8 +58,8 @@ flowchart TD
     style CI fill:#495057,color:#fff
 ```
 
-The engineer's job is steps **1** and **3**: say what to test, and run the suite. Steps 2 and the
-healing loop are the agents' job.
+The engineer's job is steps **1** and **3**: say what to test, and run the suite. The
+duplicate-coverage check, the plan/test writing, and the healing loop are the agents' job.
 
 ## Getting started
 
