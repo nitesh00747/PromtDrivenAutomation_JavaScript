@@ -76,7 +76,20 @@ explicit go-ahead. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full plan-time
 cd C:\PromtDrivenAutomation_JavaScript
 npm install
 npx playwright install chromium
+copy .env.example .env   # optional: set BASE_URL (dev, QA, UAT...) and credentials
 ```
+
+Works on Windows, macOS and Linux (the MCP server is started with `node`, not `cmd`).
+
+## How the tests are built
+
+| Piece | Where | What it gives you |
+|---|---|---|
+| Page objects | `pages/` | Every locator lives in one place: a UI change is one edit, not one per test |
+| Fixtures | `fixtures/index.ts` | Tests ask for `loginPage`, `inventoryPage`, `cartPage`, `checkoutPage`, `header`, `productPage` |
+| Saved login | `tests/auth.setup.ts` | Logs in once per run; tests start already logged in (`test.use({ storageState: NO_AUTH })` for logged-out tests) |
+| Test data | `test-data/users.ts`, `pages/products.ts` | Users, password and products in one place, overridable from `.env` |
+| Conventions | [`TESTING-CONVENTIONS.md`](TESTING-CONVENTIONS.md) | The rules the Generator and Healer follow; `npm run guardrails` enforces them |
 
 ## How to use this solution
 
@@ -136,6 +149,24 @@ over all three, each uploading its own `playwright-report-<project>` artifact, w
 npx playwright test --project=chromium --project=firefox --project=webkit
 ```
 
+Each run writes three reports: the console list, the HTML report (`npm run test:report`) and
+`test-results/junit.xml` for CI tools such as Azure DevOps.
+
+## Flakiness
+
+There are **no retries**: a retry turns a flaky test into a silent pass. Instead, the nightly
+[flakiness workflow](.github/workflows/flakiness.yml) runs the suite five times and passes the
+results to [Flake Forensics](https://github.com/nitesh00747/flake-forensics), which reports which
+tests both passed and failed on the same code, and why. You can also start it by hand from the
+Actions tab.
+
+## Metrics
+
+`npm run metrics` reports suite size, the last run (pass rate, slowest tests) and agent outcomes:
+how many generated tests survive review and how often the Healer really fixes a test. Agent outcomes
+come from `metrics/agent-runs.jsonl` (see [CONTRIBUTING.md](CONTRIBUTING.md#metrics)). CI adds the
+report to each run's summary.
+
 ## Review gate
 
 Agent-written tests and plans go through the same PR process as anything else, with two guardrails
@@ -158,10 +189,11 @@ Planner's plan before generation even starts, then later reviews the resulting P
 
 None of the above is tied to one app. To retarget:
 
-1. Change `baseURL` in `playwright.config.js`.
-2. Replace `tests/seed.spec.ts` with your app's own "starting state" (a login, or whatever gets
-   you to the first real step of the flow).
-3. Plan, generate, run, heal — same four steps, your app's flows.
+1. Set `BASE_URL` (in `.env` or your CI variables).
+2. Rewrite `tests/auth.setup.ts` to log in to your app, and `tests/seed.spec.ts` to open the
+   first page of your flows.
+3. Replace the page objects in `pages/` with your app's pages (the Generator adds to them as it goes).
+4. Plan, generate, run, heal — same steps, your app's flows.
 
 Everything else (agents, manifest script, CI workflow) carries over unchanged.
 
@@ -192,10 +224,15 @@ new planning happens — see step 2 in [How to use this solution](#how-to-use-th
 | `specs/` | Test plans, written by the Planner as plain markdown |
 | `specs/manifest.json` | Auto-generated index of all tests — see above |
 | `tests/` | Generated tests, written by the Generator, one file per scenario |
-| `tests/seed.spec.ts` | Starting point (logs in as `standard_user`) other scenarios build on |
-| `.claude/agents/` | Planner/Generator/Healer (official, unmodified) + `playwright-cli-generator` (CLI lane) + `playwright-coverage-checker` (plan-time coverage check) |
+| `tests/seed.spec.ts` | Starting point (inventory page, logged in) other scenarios build on |
+| `tests/auth.setup.ts` | Logs in once and saves the session for all tests |
+| `pages/`, `fixtures/`, `test-data/` | Page objects, the `test` fixture, users and products — see [How the tests are built](#how-the-tests-are-built) |
+| `TESTING-CONVENTIONS.md` | Rules every test follows, enforced by `npm run guardrails` |
+| `metrics/agent-runs.jsonl` | One line per agent run, read by `npm run metrics` |
+| `.claude/agents/` | Planner/Generator/Healer (official, plus a short "project conventions" section) + `playwright-cli-generator` (CLI lane) + `playwright-coverage-checker` (plan-time coverage check) |
 | `.claude/skills/` | `playwright-cli` skill (installed via `npx playwright-cli install --skills`) |
-| `playwright.config.js` | Base URL, browser settings (chromium/firefox/webkit), reporter |
+| `playwright.config.js` | `BASE_URL`, saved login, browsers (chromium/firefox/webkit), reporters, no retries |
+| `.github/workflows/` | `playwright.yml` (every push and PR), `flakiness.yml` (nightly) |
 | `.github/CODEOWNERS` | Requires `@nitesh00747` review on `tests/`, `specs/`, `.claude/`, `playwright.config.js` |
 | `.github/pull_request_template.md` | PR checklist — see [Review gate](#review-gate) |
 

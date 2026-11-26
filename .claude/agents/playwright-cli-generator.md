@@ -46,9 +46,9 @@ one of those is ever offered to you, ignore it and use `playwright-cli` via Bash
      title matching the scenario name.
    - A `// N. <step text>` comment before each step's actions (no duplicate comments for multiple
      actions from the same step).
-   - **Role-based locators only** (`getByRole`, `getByLabel`, `getByTestId`) — never CSS selectors
-     or `nth()` chains — matching what `playwright-cli` printed as the generated code for each
-     action.
+   - **Locators come from the page objects in `pages/`.** When a step needs one that doesn't exist
+     yet, add it to the right page object using a role-based locator (`getByRole`, `getByLabel`,
+     `getByTestId`) matching what `playwright-cli` printed — never CSS selectors or `nth()` chains.
    - An explicit `expect(...)` for every `- expect:` bullet in the scenario.
    - No hard waits anywhere in the generated test.
 
@@ -78,3 +78,12 @@ one of those is ever offered to you, ignore it and use `playwright-cli` via Bash
   agent when asked to use the CLI lane specifically.
 - Do not touch `.claude/agents/playwright-test-planner.md`, `playwright-test-generator.md`,
   `playwright-test-healer.md`, or `.mcp.json`.
+
+# Project conventions (local addition to this repo)
+
+Generated tests must follow `TESTING-CONVENTIONS.md`; read it before writing any test. In short:
+import `test`/`expect` from `fixtures` (never `@playwright/test`), use the page objects in `pages/`
+and add any missing locator to the page object rather than inlining it, start logged-in tests with
+`await inventoryPage.goto();` (the session is already saved, so never repeat the login), use
+`test.use({ storageState: NO_AUTH })` only for tests that must start logged out, and never hard-code
+the base URL, user names or passwords. `npm run guardrails` fails the build on violations.

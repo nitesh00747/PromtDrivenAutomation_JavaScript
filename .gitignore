@@ -9,3 +9,8 @@ node_modules/
 /.playwright-mcp/
 # Playwright CLI output (may contain credentials)
 .playwright-cli/
+
+# Local environment (see .env.example)
+.env
+# Metrics output
+/metrics/report.md

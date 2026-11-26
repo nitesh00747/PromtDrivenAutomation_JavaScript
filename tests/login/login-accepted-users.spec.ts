@@ -1,99 +1,38 @@
 // spec: specs/login-and-inventory.plan.md
 // seed: tests/seed.spec.ts
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../../fixtures';
+import { NO_AUTH, USERS } from '../../test-data/users';
 
 test.describe('Login - Accepted Users', () => {
-  test('standard_user logs in successfully', async ({ page }) => {
-    // Navigate to '/'
-    await page.goto('/');
+  // Login tests start logged out.
+  test.use({ storageState: NO_AUTH });
 
-    // Verify login form is displayed before submit
-    const loginForm = page.getByRole('form', { name: 'Login' });
-    await expect(loginForm).toBeVisible();
+  test.beforeEach(async ({ loginPage }) => {
+    await loginPage.goto();
+  });
 
-    // Fill username 'standard_user' and password 'secret_sauce'
-    await page.locator('[data-test="username"]').fill('standard_user');
-    await page.locator('[data-test="password"]').fill('secret_sauce');
-
-    // Click Login button
-    await page.locator('[data-test="login-button"]').click();
-
-    // Verify no error message shown and URL matches /inventory.html
-    const errorBanner = page.locator('[data-test="error"]');
-    await expect(errorBanner).not.toBeVisible();
+  test('standard_user logs in successfully', async ({ page, loginPage, inventoryPage }) => {
+    await expect(loginPage.form).toBeVisible();
+    await loginPage.login(USERS.standard);
+    await expect(loginPage.error).not.toBeVisible();
     await expect(page).toHaveURL(/inventory\.html/);
-
-    // Verify 'Products' page title/header is visible
-    await expect(page.locator('[data-test="title"]')).toHaveText('Products');
+    await expect(inventoryPage.title).toHaveText('Products');
   });
 
-  test('problem_user logs in successfully', async ({ page }) => {
-    // Navigate to '/'
-    await page.goto('/');
-
-    // Fill username 'problem_user' and password 'secret_sauce'
-    await page.locator('[data-test="username"]').fill('problem_user');
-    await page.locator('[data-test="password"]').fill('secret_sauce');
-
-    // Click Login button
-    await page.locator('[data-test="login-button"]').click();
-
-    // Verify no error message shown and URL matches /inventory.html
-    const errorBanner = page.locator('[data-test="error"]');
-    await expect(errorBanner).not.toBeVisible();
-    await expect(page).toHaveURL(/inventory\.html/);
-  });
-
-  test('performance_glitch_user logs in successfully', async ({ page }) => {
-    // Navigate to '/'
-    await page.goto('/');
-
-    // Fill username 'performance_glitch_user' and password 'secret_sauce'
-    await page.locator('[data-test="username"]').fill('performance_glitch_user');
-    await page.locator('[data-test="password"]').fill('secret_sauce');
-
-    // Click Login button
-    await page.locator('[data-test="login-button"]').click();
-
-    // Verify no error message shown and URL matches /inventory.html
-    // (this user simulates a performance delay before navigating, so allow a generous timeout)
-    const errorBanner = page.locator('[data-test="error"]');
-    await expect(errorBanner).not.toBeVisible();
-    await expect(page).toHaveURL(/inventory\.html/, { timeout: 15000 });
-  });
-
-  test('error_user logs in successfully', async ({ page }) => {
-    // Navigate to '/'
-    await page.goto('/');
-
-    // Fill username 'error_user' and password 'secret_sauce'
-    await page.locator('[data-test="username"]').fill('error_user');
-    await page.locator('[data-test="password"]').fill('secret_sauce');
-
-    // Click Login button
-    await page.locator('[data-test="login-button"]').click();
-
-    // Verify no error message shown and URL matches /inventory.html
-    const errorBanner = page.locator('[data-test="error"]');
-    await expect(errorBanner).not.toBeVisible();
-    await expect(page).toHaveURL(/inventory\.html/);
-  });
-
-  test('visual_user logs in successfully', async ({ page }) => {
-    // Navigate to '/'
-    await page.goto('/');
-
-    // Fill username 'visual_user' and password 'secret_sauce'
-    await page.locator('[data-test="username"]').fill('visual_user');
-    await page.locator('[data-test="password"]').fill('secret_sauce');
-
-    // Click Login button
-    await page.locator('[data-test="login-button"]').click();
-
-    // Verify no error message shown and URL matches /inventory.html
-    const errorBanner = page.locator('[data-test="error"]');
-    await expect(errorBanner).not.toBeVisible();
-    await expect(page).toHaveURL(/inventory\.html/);
-  });
+  // The other accepted users: no error, lands on the inventory page.
+  const others: [string, string, number?][] = [
+    ['problem_user', USERS.problem],
+    // simulates a slow login before navigating, so allow a generous timeout
+    ['performance_glitch_user', USERS.performanceGlitch, 15_000],
+    ['error_user', USERS.error],
+    ['visual_user', USERS.visual],
+  ];
+  for (const [label, user, timeout] of others) {
+    test(`${label} logs in successfully`, async ({ page, loginPage }) => {
+      await loginPage.login(user);
+      await expect(loginPage.error).not.toBeVisible();
+      await expect(page).toHaveURL(/inventory\.html/, timeout ? { timeout } : undefined);
+    });
+  }
 });

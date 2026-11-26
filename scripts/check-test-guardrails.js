@@ -63,6 +63,30 @@ function checkFixmeAndSkip() {
   return offenders;
 }
 
+// Conventions from TESTING-CONVENTIONS.md that can be checked mechanically. Agent-generated tests
+// drift back to inline logins and hard-coded values unless something stops them.
+const CONVENTION_RULES = [
+  { re: /from\s+['"]@playwright\/test['"]/, msg: "import test/expect from the fixtures, not '@playwright/test'" },
+  { re: /secret_sauce/, msg: 'hard-coded password: use PASSWORD / USERS from test-data/users' },
+  { re: /https?:\/\/(?!localhost)[\w.-]+\.\w+/, msg: 'hard-coded URL: use a relative path (BASE_URL is the base)' },
+  { re: /\.waitForTimeout\(|networkidle/, msg: 'hard wait: rely on auto-waiting and web-first assertions' },
+];
+
+function checkConventions() {
+  const offenders = [];
+  for (const file of walkSpecFiles(TESTS_DIR)) {
+    const rel = path.relative(ROOT, file);
+    const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
+    lines.forEach((line, i) => {
+      if (/^\s*\/\//.test(line)) return; // comments may mention these
+      for (const rule of CONVENTION_RULES) {
+        if (rule.re.test(line)) offenders.push(`${rel}:${i + 1}: ${rule.msg}`);
+      }
+    });
+  }
+  return offenders;
+}
+
 function checkManifestFresh() {
   const before = fs.existsSync(MANIFEST_PATH) ? fs.readFileSync(MANIFEST_PATH, 'utf8') : null;
   execSync('node scripts/generate-test-index.js', { cwd: ROOT, stdio: 'pipe' });
@@ -86,6 +110,15 @@ function main() {
     for (const line of fixmeOffenders) console.error(`  ${line}`);
   } else {
     console.log('OK: no unacknowledged test.fixme()/test.skip() in tests/.');
+  }
+
+  const conventionOffenders = checkConventions();
+  if (conventionOffenders.length > 0) {
+    failed = true;
+    console.error('\nFAIL: tests break TESTING-CONVENTIONS.md:\n');
+    for (const line of conventionOffenders) console.error(`  ${line}`);
+  } else {
+    console.log('OK: tests follow TESTING-CONVENTIONS.md (fixtures, no hard-coded URLs or credentials, no hard waits).');
   }
 
   const manifestStale = checkManifestFresh();

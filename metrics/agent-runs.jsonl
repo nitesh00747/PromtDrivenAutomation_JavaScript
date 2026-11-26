@@ -1,0 +1,2 @@
+// One JSON line per agent run, appended by whoever ran the agent (see CONTRIBUTING.md > Metrics).
+// {"date":"2026-11-26","agent":"generator|cli-generator|healer|coverage-checker|planner","plan":"specs/x.plan.md","scenario":"1.2","outcome":"generated|merged|rejected|healed|fixme|failed|full|partial|none","minutes":6}

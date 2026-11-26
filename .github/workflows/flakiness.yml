@@ -1,0 +1,49 @@
+name: Nightly flakiness check
+# CI runs without retries, so a flaky test fails the build instead of passing silently.
+# This job finds them before they do: it runs the suite several times and asks Flake Forensics
+# which tests both passed and failed on the same code, and why.
+on:
+  schedule:
+    - cron: '17 6 * * *'   # daily, 06:17 UTC
+  workflow_dispatch:
+    inputs:
+      repeat:
+        description: Runs per test
+        default: '5'
+
+permissions:
+  contents: read
+
+jobs:
+  flakiness:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: lts/*
+    - run: npm ci
+    - run: npx playwright install --with-deps chromium
+    - name: Run the suite repeatedly (failures expected; that's the point)
+      run: npx playwright test --project=chromium --repeat-each=${{ github.event.inputs.repeat || '5' }}
+      continue-on-error: true
+    - name: Keep history between nights
+      uses: actions/cache@v4
+      with:
+        path: .flake-forensics
+        key: flake-history-${{ github.run_id }}
+        restore-keys: flake-history-
+    - name: Analyse with Flake Forensics
+      uses: nitesh00747/flake-forensics@main
+      with:
+        test-results: test-results/junit.xml
+        history-file: .flake-forensics/history.jsonl
+    - uses: actions/upload-artifact@v4
+      if: ${{ !cancelled() }}
+      with:
+        name: flakiness-report
+        path: |
+          test-results/junit.xml
+          ${{ runner.temp }}/flake-forensics/
+        retention-days: 30
