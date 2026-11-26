@@ -1,4 +1,4 @@
-import type { Locator, Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
 
 /** Shared header: cart icon and the burger (side) menu. Present on every logged-in page. */
 export class Header {
@@ -27,8 +27,17 @@ export class Header {
     await this.cartLink.click();
   }
 
+  /**
+   * Open the side menu and wait until it is really open.
+   * WebKit occasionally drops the click on this burger button (seen in CI: the menu never opened
+   * and the next click timed out after 30 s). So the click is repeated only while the menu is
+   * still closed: this re-tries the action whose effect was lost, not the assertion.
+   */
   async openMenu() {
-    await this.menuButton.click();
+    await expect(async () => {
+      if (!(await this.allItemsLink.isVisible())) await this.menuButton.click();
+      await expect(this.allItemsLink).toBeVisible({ timeout: 2_000 });
+    }).toPass({ timeout: 10_000 });
   }
 
   async logout() {
