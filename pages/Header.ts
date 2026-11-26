@@ -8,8 +8,11 @@ export class Header {
   readonly allItemsLink: Locator;
   readonly logoutLink: Locator;
   readonly resetAppStateLink: Locator;
+  /** The side menu's wrapper; its attributes show whether the menu is ready, open or closed. */
+  readonly menuWrap: Locator;
 
   constructor(readonly page: Page) {
+    this.menuWrap = page.locator('.bm-menu-wrap');
     this.cartLink = page.getByTestId('shopping-cart-link');
     this.cartBadge = page.getByTestId('shopping-cart-badge');
     this.menuButton = page.locator('#react-burger-menu-btn');
@@ -28,16 +31,19 @@ export class Header {
   }
 
   /**
-   * Open the side menu and wait until it is really open.
-   * WebKit occasionally drops the click on this burger button (seen in CI: the menu never opened
-   * and the next click timed out after 30 s). So the click is repeated only while the menu is
-   * still closed: this re-tries the action whose effect was lost, not the assertion.
+   * Open the side menu, once the menu is ready for it.
+   *
+   * The menu (react-burger-menu 3.x) starts a 500 ms timer when the page loads that marks its
+   * wrapper `hidden`. A click before that timer fires can race with it: the menu becomes "open"
+   * (aria-hidden="false") but stays hidden, so its links never appear (seen in CI on WebKit, and
+   * more likely now that tests start fast from a saved login). The `hidden` attribute shows the
+   * timer has run, so wait for it, click once, then wait for the menu to be open and visible.
    */
   async openMenu() {
-    await expect(async () => {
-      if (!(await this.allItemsLink.isVisible())) await this.menuButton.click();
-      await expect(this.allItemsLink).toBeVisible({ timeout: 2_000 });
-    }).toPass({ timeout: 10_000 });
+    await expect(this.menuWrap).toHaveAttribute('hidden');
+    await this.menuButton.click();
+    await expect(this.menuWrap).toHaveAttribute('aria-hidden', 'false');
+    await expect(this.allItemsLink).toBeVisible();
   }
 
   async logout() {
