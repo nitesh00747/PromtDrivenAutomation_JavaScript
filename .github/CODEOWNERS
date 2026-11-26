@@ -1,0 +1,7 @@
+# Agent-written tests and plans, plus the agents/config that produce them,
+# require review from a human before merge.
+
+/tests/              @nitesh00747
+/specs/              @nitesh00747
+/.claude/            @nitesh00747
+/playwright.config.js @nitesh00747

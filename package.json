@@ -1,0 +1,24 @@
+{
+  "name": "promtdrivenautomation_javascript",
+  "version": "1.0.0",
+  "description": "Prompt-driven test automation (JavaScript) using Playwright's official Planner/Generator/Healer agents",
+  "main": "index.js",
+  "scripts": {
+    "pretest": "node scripts/generate-test-index.js",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:report": "playwright show-report",
+    "test:index": "node scripts/generate-test-index.js",
+    "guardrails": "node scripts/check-test-guardrails.js",
+    "cli": "playwright-cli",
+    "cli:close": "playwright-cli close-all"
+  },
+  "keywords": [],
+  "author": "Nitesh Guleria",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/cli": "^0.1.22",
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^26.6.4"
+  }
+}
