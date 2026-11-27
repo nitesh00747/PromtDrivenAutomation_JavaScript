@@ -66,6 +66,20 @@ concurrent agent, not raising the batch size — infrastructure work, not a defa
    a count, a URL) in a healed test needs a reason in the PR: either the app really changed, or the
    heal is hiding a bug.
 
+## Review gate
+
+Agent-written tests and plans go through a PR like anything else:
+
+- **`.github/CODEOWNERS`** requires review from `@nitesh00747` on `tests/`, `specs/`, `.claude/`,
+  `pages/`, `fixtures/`, `test-data/` and `playwright.config.js`, the paths agents write to.
+- **`.github/pull_request_template.md`** asks which agent or lane wrote the test, which plan it
+  implements, that it ran on all 3 browsers, and the checks above.
+- **Branch protection** (1 approving review, passing `guardrails` and `test` checks) is set by a
+  repo admin with `gh api`; an agent never changes it.
+
+This merge-time review comes on top of the plan-time approval: a person approves the plan before
+any test is generated, then reviews the resulting PR.
+
 ## Metrics
 
 After each agent run, the orchestrating session (or you) appends one line to

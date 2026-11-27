@@ -5,3 +5,6 @@
 /specs/              @nitesh00747
 /.claude/            @nitesh00747
 /playwright.config.js @nitesh00747
+/pages/              @nitesh00747
+/fixtures/           @nitesh00747
+/test-data/          @nitesh00747
