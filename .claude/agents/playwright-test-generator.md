@@ -57,3 +57,12 @@ application behavior.
    });
    ```
    </example-generation>
+
+# Project conventions (local addition to this repo)
+
+Generated tests must follow `TESTING-CONVENTIONS.md`; read it before writing any test. In short:
+import `test`/`expect` from `fixtures` (never `@playwright/test`), use the page objects in `pages/`
+and add any missing locator to the page object rather than inlining it, start logged-in tests with
+`await inventoryPage.goto();` (the session is already saved, so never repeat the login), use
+`test.use({ storageState: NO_AUTH })` only for tests that must start logged out, and never hard-code
+the base URL, user names or passwords. `npm run guardrails` fails the build on violations.

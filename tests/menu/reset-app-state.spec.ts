@@ -1,48 +1,38 @@
 // spec: specs/shopping-flow.plan.md
 // seed: tests/seed.spec.ts
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../../fixtures';
+import { PRODUCTS } from '../../pages';
+
+const { backpack } = PRODUCTS;
 
 test.describe('Reset App State', () => {
-  test('Reset App State clears the cart after items have been added', async ({ page }) => {
-    // Perform seed login steps inline
-    await page.goto('/');
-    await page.locator('[data-test="username"]').fill('standard_user');
-    await page.locator('[data-test="password"]').fill('secret_sauce');
-    await page.locator('[data-test="login-button"]').click();
+  test('Reset App State clears the cart after items have been added', async ({ page, header, inventoryPage, cartPage }) => {
+    await inventoryPage.goto();
 
-    const cartLink = page.locator('[data-test="shopping-cart-link"]');
-    const cartBadge = page.locator('[data-test="shopping-cart-badge"]');
+    // Add the Backpack: badge '1', button reads 'Remove'
+    await inventoryPage.addToCart(backpack);
+    await expect(header.cartBadge).toHaveText('1');
+    await expect(inventoryPage.removeButton(backpack)).toHaveText('Remove');
 
-    // Add Sauce Labs Backpack to the cart - expect cart badge shows '1' and the Backpack button reads 'Remove'
-    await page.locator('[data-test="add-to-cart-sauce-labs-backpack"]').click();
-    await expect(cartBadge).toHaveText('1');
-    await expect(page.locator('[data-test="remove-sauce-labs-backpack"]')).toHaveText('Remove');
+    // Reset App State: the cart empties immediately
+    await header.resetAppState();
+    await expect(header.cartLink).toHaveAccessibleName('Cart, empty');
 
-    // Open the burger menu and click 'Reset App State' - expect the cart badge disappears immediately
-    await page.locator('#react-burger-menu-btn').click();
-    await page.locator('[data-test="reset-sidebar-link"]').click();
-    await expect(cartLink).toHaveAccessibleName('Cart, empty');
-
-    // Navigate to the cart page - expect the cart page shows no .cart_item line items
-    await cartLink.click();
+    // The cart page has no line items
+    await header.openCart();
     await expect(page).toHaveURL(/cart\.html/);
-    await expect(page.locator('.cart_item')).toHaveCount(0);
+    await expect(cartPage.items).toHaveCount(0);
 
-    // Navigate back to /inventory.html via a fresh navigation (a real reload is required for the
-    // inventory page's own 'Remove' buttons to visually revert to 'Add to cart')
-    await page.goto('/inventory.html');
-
-    // Expect the Sauce Labs Backpack button has reverted to 'Add to cart', all other product
-    // buttons also read 'Add to cart', and the cart badge remains absent
-    await expect(page.locator('[data-test="add-to-cart-sauce-labs-backpack"]')).toHaveText('Add to cart');
-    const inventoryItems = page.locator('.inventory_item');
-    await expect(inventoryItems).toHaveCount(6);
-    const itemCount = await inventoryItems.count();
+    // A fresh load of the inventory page is needed for its buttons to revert to 'Add to cart'
+    await inventoryPage.goto();
+    await expect(inventoryPage.addToCartButton(backpack)).toHaveText('Add to cart');
+    await expect(inventoryPage.items).toHaveCount(6);
+    const itemCount = await inventoryPage.items.count();
     for (let i = 0; i < itemCount; i++) {
-      await expect(inventoryItems.nth(i).getByRole('button', { name: 'Add to cart' })).toBeVisible();
+      await expect(inventoryPage.items.nth(i).getByRole('button', { name: 'Add to cart' })).toBeVisible();
     }
-    await expect(cartLink).toHaveAccessibleName('Cart, empty');
-    await expect(cartBadge).toHaveCount(0);
+    await expect(header.cartLink).toHaveAccessibleName('Cart, empty');
+    await expect(header.cartBadge).toHaveCount(0);
   });
 });

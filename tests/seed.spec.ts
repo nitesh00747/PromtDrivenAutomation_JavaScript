@@ -1,11 +1,10 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures';
 
+// Seed for the Planner and Generator: every logged-in scenario starts here, on the inventory
+// page as standard_user. The login itself is done once by tests/auth.setup.ts.
 test.describe('Seed', () => {
-  test('Logged in as standard_user', async ({ page }) => {
-    await page.goto('/');
-    await page.getByLabel('Username').fill('standard_user');
-    await page.getByLabel('Password').fill('secret_sauce');
-    await page.getByRole('button', { name: 'Login' }).click();
+  test('Logged in as standard_user', async ({ page, inventoryPage }) => {
+    await inventoryPage.goto();
     await expect(page).toHaveURL(/inventory\.html/);
   });
 });

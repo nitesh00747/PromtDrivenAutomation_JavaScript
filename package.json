@@ -11,7 +11,9 @@
     "test:index": "node scripts/generate-test-index.js",
     "guardrails": "node scripts/check-test-guardrails.js",
     "cli": "playwright-cli",
-    "cli:close": "playwright-cli close-all"
+    "cli:close": "playwright-cli close-all",
+    "typecheck": "tsc -p .",
+    "metrics": "node scripts/suite-metrics.js"
   },
   "keywords": [],
   "author": "Nitesh Guleria",
@@ -19,6 +21,7 @@
   "devDependencies": {
     "@playwright/cli": "^0.1.22",
     "@playwright/test": "^1.63.0",
-    "@types/node": "^26.6.4"
+    "@types/node": "^26.6.4",
+    "typescript": "^5.9.3"
   }
 }

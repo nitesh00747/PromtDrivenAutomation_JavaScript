@@ -1,10 +1,14 @@
 {
   "totals": {
-    "files": 15,
+    "files": 16,
     "tests": 114,
     "plans": 5
   },
   "byPlan": {
+    "(no spec header)": [
+      "tests/auth.setup.ts",
+      "tests/seed.spec.ts"
+    ],
     "specs/shopping-flow.plan.md": [
       "tests/cart/cart-inventory-add-remove.spec.ts",
       "tests/cart/cart-page.spec.ts",
@@ -26,12 +30,16 @@
       "tests/negative-edge-cases/checkout-cancel-flows.spec.ts",
       "tests/negative-edge-cases/checkout-step-one-validation.spec.ts",
       "tests/negative-edge-cases/route-guard-redirects.spec.ts"
-    ],
-    "(no spec header)": [
-      "tests/seed.spec.ts"
     ]
   },
   "files": [
+    {
+      "file": "tests/auth.setup.ts",
+      "specPlan": null,
+      "seed": null,
+      "suites": [],
+      "count": 0
+    },
     {
       "file": "tests/cart/cart-inventory-add-remove.spec.ts",
       "specPlan": "specs/shopping-flow.plan.md",

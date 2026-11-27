@@ -1,58 +1,36 @@
 // spec: specs/login-and-inventory.plan.md
 // seed: tests/seed.spec.ts
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../../fixtures';
+import { NO_AUTH, USERS } from '../../test-data/users';
 
 test.describe('Login - Negative Scenarios', () => {
-  test('locked_out_user is denied login with correct password', async ({ page }) => {
-    // Navigate to '/'
-    await page.goto('/');
+  test.use({ storageState: NO_AUTH });
 
-    // Verify login form is displayed and no error banner is present yet
-    const loginForm = page.getByRole('form', { name: 'Login' });
-    await expect(loginForm).toBeVisible();
-    const errorBanner = page.locator('[data-test="error"]');
-    await expect(errorBanner).not.toBeVisible();
-
-    // Fill username 'locked_out_user', password 'secret_sauce' (the correct password)
-    await page.locator('[data-test="username"]').fill('locked_out_user');
-    await page.locator('[data-test="password"]').fill('secret_sauce');
-
-    // Click Login
-    await page.locator('[data-test="login-button"]').click();
-
-    // Expect: login is denied — URL remains on the login page ('/') and does NOT navigate to /inventory.html;
-    // an error alert is displayed with the exact text; the error element is selectable via
-    // [data-test="error"] and includes a 'Dismiss error' button.
-    await expect(page).not.toHaveURL(/inventory\.html/);
-    await expect(page).toHaveURL('/');
-    await expect(errorBanner).toBeVisible();
-    await expect(errorBanner).toHaveText('Epic sadface: Sorry, this user has been locked out.');
-    await expect(errorBanner.getByRole('button', { name: 'Dismiss error' })).toBeVisible();
+  test.beforeEach(async ({ loginPage }) => {
+    await loginPage.goto();
+    // Form visible, no error banner yet
+    await expect(loginPage.form).toBeVisible();
+    await expect(loginPage.error).not.toBeVisible();
   });
 
-  test('valid username with wrong password is denied login', async ({ page }) => {
-    // Navigate to '/'
-    await page.goto('/');
+  test('locked_out_user is denied login with correct password', async ({ page, loginPage }) => {
+    await loginPage.login(USERS.lockedOut);
 
-    // Verify login form is displayed and no error banner is present yet
-    const loginForm = page.getByRole('form', { name: 'Login' });
-    await expect(loginForm).toBeVisible();
-    const errorBanner = page.locator('[data-test="error"]');
-    await expect(errorBanner).not.toBeVisible();
-
-    // Fill username 'standard_user' (valid/accepted username), password 'wrong_password' (an incorrect password)
-    await page.locator('[data-test="username"]').fill('standard_user');
-    await page.locator('[data-test="password"]').fill('wrong_password');
-
-    // Click Login
-    await page.locator('[data-test="login-button"]').click();
-
-    // Expect: login is denied — URL remains on the login page ('/') and does NOT navigate to /inventory.html;
-    // an error alert is displayed with the exact text; the error element is selectable via [data-test="error"].
+    // Denied: stays on the login page, exact error text, with a 'Dismiss error' button
     await expect(page).not.toHaveURL(/inventory\.html/);
     await expect(page).toHaveURL('/');
-    await expect(errorBanner).toBeVisible();
-    await expect(errorBanner).toHaveText('Epic sadface: Username and password do not match any user in this service');
+    await expect(loginPage.error).toBeVisible();
+    await expect(loginPage.error).toHaveText('Epic sadface: Sorry, this user has been locked out.');
+    await expect(loginPage.dismissErrorButton).toBeVisible();
+  });
+
+  test('valid username with wrong password is denied login', async ({ page, loginPage }) => {
+    await loginPage.login(USERS.standard, 'wrong_password');
+
+    await expect(page).not.toHaveURL(/inventory\.html/);
+    await expect(page).toHaveURL('/');
+    await expect(loginPage.error).toBeVisible();
+    await expect(loginPage.error).toHaveText('Epic sadface: Username and password do not match any user in this service');
   });
 });

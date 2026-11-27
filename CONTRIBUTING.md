@@ -51,14 +51,37 @@ concurrent agent, not raising the batch size — infrastructure work, not a defa
 1. **Everything lands via a PR, never a direct push to `main`/`master`.** A human reviews the diff
    — agents producing plausible-but-unverified code (see above) is exactly what this catches.
 2. **CI must pass:**
-   - `guardrails` (`npm run guardrails`) — fails on any `test.fixme()`/`test.skip()`, or a stale
-     `specs/manifest.json`.
+   - `guardrails` (`npm run typecheck` and `npm run guardrails`) — fails on type errors, any
+     unacknowledged `test.fixme()`/`test.skip()`, a test that breaks
+     [`TESTING-CONVENTIONS.md`](TESTING-CONVENTIONS.md) (imports, hard-coded URLs or credentials,
+     hard waits), or a stale `specs/manifest.json`.
    - `test` — the full suite, run fresh, independent of what the agent itself reported.
 3. **Treat any `test.fixme()` from the Healer as a required discussion item**, not something to
    delete or ignore. It means the Healer couldn't confidently fix the test — a human needs to look
    at *why*, not just satisfy the guardrail.
 4. **Check `specs/manifest.json` before planning new functionality** (see the README) so new
    scenarios extend an existing plan instead of duplicating coverage.
+
+5. **Check the Healer didn't loosen an assertion.** A changed expected value (`toHaveText('...')`,
+   a count, a URL) in a healed test needs a reason in the PR: either the app really changed, or the
+   heal is hiding a bug.
+
+## Metrics
+
+After each agent run, the orchestrating session (or you) appends one line to
+`metrics/agent-runs.jsonl`:
+
+```json
+{"date":"2026-11-26","agent":"healer","plan":"specs/shopping-flow.plan.md","scenario":"2.1","outcome":"healed","minutes":4}
+```
+
+| `agent` | `outcome` values |
+|---|---|
+| `generator`, `cli-generator` | `merged` or `rejected` (after review); `generated` while the PR is open |
+| `healer` | `healed`, `fixme` or `failed` |
+| `coverage-checker` | `full`, `partial` or `none` |
+
+`npm run metrics` turns these into the numbers that show whether the workflow pays off.
 
 ## What this doesn't cover
 
